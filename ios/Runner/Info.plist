@@ -47,6 +47,10 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_mousepad._udp</string>
+	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Mousepad connects to your desktop over the local network to control the mouse.</string>
 	<key>NSAppTransportSecurity</key>

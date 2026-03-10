@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:multicast_dns/multicast_dns.dart';
 
 import '../models/app_settings.dart';
 import '../services/connection_service.dart';
@@ -32,6 +35,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   late double _scrollSpeed;
   late bool _naturalScroll;
   bool _connecting = false;
+  bool _discovering = false;
   String? _errorText;
 
   @override
@@ -58,6 +62,73 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
         scrollSpeed: _scrollSpeed,
         naturalScroll: _naturalScroll,
       );
+
+  // ── mDNS discovery ─────────────────────────────────────────────────────────
+
+  Future<void> _discover() async {
+    setState(() {
+      _discovering = true;
+      _errorText = null;
+    });
+
+    final client = MDnsClient();
+    final completer = Completer<(String, int)?>();
+
+    try {
+      await client.start();
+
+      // Timeout after 6 seconds
+      Timer(const Duration(seconds: 6), () {
+        if (!completer.isCompleted) completer.complete(null);
+      });
+
+      client
+          .lookup<PtrResourceRecord>(
+            ResourceRecordQuery.serverPointer('_mousepad._udp.local'),
+          )
+          .listen((PtrResourceRecord ptr) async {
+        await for (final SrvResourceRecord srv in client
+            .lookup<SrvResourceRecord>(
+                ResourceRecordQuery.service(ptr.domainName))) {
+          await for (final IPAddressResourceRecord ip in client
+              .lookup<IPAddressResourceRecord>(
+                  ResourceRecordQuery.addressIPv4(srv.target))) {
+            if (!completer.isCompleted) {
+              completer.complete((ip.address.address, srv.port));
+            }
+            break;
+          }
+          break;
+        }
+      });
+
+      final found = await completer.future;
+      client.stop();
+
+      if (!mounted) return;
+
+      if (found != null) {
+        _hostCtrl.text = found.$1;
+        _portCtrl.text = found.$2.toString();
+        setState(() => _discovering = false);
+      } else {
+        setState(() {
+          _discovering = false;
+          _errorText = 'Desktop not found — enter IP manually';
+        });
+      }
+    } catch (e) {
+      client.stop();
+      if (mounted) {
+        setState(() {
+          _discovering = false;
+          _errorText = 'Discovery failed — enter IP manually';
+        });
+      }
+    }
+  }
+
+  // ── Connect / Save ──────────────────────────────────────────────────────────
 
   Future<void> _connect() async {
     final host = _hostCtrl.text.trim();
@@ -108,8 +179,45 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
               _header(),
               const SizedBox(height: 20),
               _label('CONNECTION'),
-              _field(_hostCtrl, 'Desktop IP  (e.g. 192.168.1.100)',
-                  type: TextInputType.number),
+              // IP row with FIND button
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: _field(_hostCtrl, 'Desktop IP  (e.g. 192.168.1.100)',
+                        type: TextInputType.number),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed:
+                          (_discovering || _connecting) ? null : _discover,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.surfaceHigh,
+                        foregroundColor: AppColors.accent,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(7)),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 14),
+                      ),
+                      child: _discovering
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.accent))
+                          : const Text('FIND',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               _field(_portCtrl, 'Port  (default: 8765)',
                   type: TextInputType.number),
@@ -336,7 +444,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                     fontWeight: FontWeight.w700)),
             SizedBox(height: 7),
             Text(
-              'pip install pyautogui\npython server/server.py',
+              'pip install pyautogui zeroconf\npython server/server.py',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10.5,
