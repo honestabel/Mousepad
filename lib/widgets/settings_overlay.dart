@@ -452,7 +452,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
             const SizedBox(height: 8),
             _emailBtn(),
             const SizedBox(height: 10),
-            const _Step(number: '2', text: 'Run the downloaded file on your computer\nMac only: allow it in System Settings → Privacy → Accessibility'),
+            const _Step(number: '2', text: 'Run the downloaded file on your computer\nWindows: if blocked by Windows Security, click "More info" then "Run anyway". Or right-click the file → Properties → check "Unblock" → OK\nMac only: allow it in System Settings → Privacy → Accessibility'),
             const SizedBox(height: 6),
             const _Step(number: '3', text: 'Tap FIND above — done'),
           ],

@@ -95,3 +95,31 @@ SCROLL:ticks   scroll wheel
 ```
 
 Auto-discovery broadcasts `MOUSEPAD_DISCOVER` on port **8766**. The server responds with `MOUSEPAD_HERE:8765` and the app connects automatically — no manual IP entry required.
+
+---
+
+## Troubleshooting
+
+### Windows Security blocks MousepadServer.exe
+
+Because MousepadServer.exe is not yet code-signed, Windows SmartScreen may show a warning when you run it for the first time. This is normal for unsigned software. To allow it:
+
+**Option A — SmartScreen prompt**
+1. Click **More info**
+2. Click **Run anyway**
+
+**Option B — Unblock via Properties**
+1. Right-click `MousepadServer.exe`
+2. Select **Properties**
+3. At the bottom, check **Unblock**
+4. Click **OK**, then run the file
+
+### App says "Desktop not found"
+
+Auto-discovery failed. Open the MousepadServer terminal window on your computer — it will display your IP address and port. Enter them manually in the app's Settings and tap **Apply**.
+
+Make sure your phone/tablet and computer are on the **same Wi-Fi network**.
+
+### Mac — server won't open
+
+Go to **System Settings → Privacy & Security → Accessibility** and grant access to MousepadServer.
