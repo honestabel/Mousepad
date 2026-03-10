@@ -116,7 +116,8 @@ def main() -> None:
         else:
             raise
         sys.exit(1)
-    print('Waiting for tablet...\n')
+    print('Waiting for tablet...')
+    print('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n')
 
     try:
         while True:

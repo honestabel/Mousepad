@@ -49,5 +49,6 @@ server.on('error', (err) => {
 
 server.bind(PORT, () => {
   console.log(`Mousepad UDP server listening on port ${PORT}`);
-  console.log('Waiting for tablet...\n');
+  console.log('Waiting for tablet...');
+  console.log('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n');
 });
