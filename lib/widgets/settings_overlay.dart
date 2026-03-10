@@ -113,7 +113,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       } else {
         setState(() {
           _discovering = false;
-          _errorText = 'Desktop not found — check the server window on your computer for the IP address and port, then enter them in the boxes above manually.';
+          _errorText = 'Desktop not found — check the server window on your computer for the IP address and port, then enter them in the boxes above manually and tap the Apply button.';
         });
       }
     } catch (e) {
@@ -121,7 +121,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       if (mounted) {
         setState(() {
           _discovering = false;
-          _errorText = 'Discovery failed — check the server window on your computer for the IP address and port, then enter them in the boxes above manually.';
+          _errorText = 'Discovery failed — check the server window on your computer for the IP address and port, then enter them in the boxes above manually and tap the Apply button.';
         });
       }
     }

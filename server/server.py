@@ -123,7 +123,8 @@ def main() -> None:
     print('  terminal running. Close it only when you are completely done using Mousepad.\n')
     print('Waiting for tablet...')
     print('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n')
-    print('  If the app says "Desktop not found", enter these manually in the app:')
+    print('  If the app says "Desktop not found", enter these manually in the app,')
+    print('  then tap the Apply button in the application:')
     print(f'    IP Address : {local_ip}')
     print(f'    Port       : {PORT}\n')
 
