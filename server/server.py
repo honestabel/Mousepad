@@ -118,6 +118,9 @@ def main() -> None:
         sys.exit(1)
     print('Waiting for tablet...')
     print('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n')
+    print('  If the app says "Desktop not found", enter these manually in the app:')
+    print(f'    IP Address : {local_ip}')
+    print(f'    Port       : {PORT}\n')
 
     try:
         while True:

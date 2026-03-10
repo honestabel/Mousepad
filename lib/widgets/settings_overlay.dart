@@ -113,7 +113,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       } else {
         setState(() {
           _discovering = false;
-          _errorText = 'Desktop not found — enter IP manually';
+          _errorText = 'Desktop not found — check the server window on your computer for the IP address and port, then enter them in the boxes above manually.';
         });
       }
     } catch (e) {
@@ -121,7 +121,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       if (mounted) {
         setState(() {
           _discovering = false;
-          _errorText = 'Discovery failed — enter IP manually';
+          _errorText = 'Discovery failed — check the server window on your computer for the IP address and port, then enter them in the boxes above manually.';
         });
       }
     }
@@ -179,11 +179,14 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
               const SizedBox(height: 20),
               _label('CONNECTION'),
               // IP row with FIND button
+              const Text('Computer IP Address',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+              const SizedBox(height: 4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: _field(_hostCtrl, 'Desktop IP  (e.g. 192.168.1.100)',
+                    child: _field(_hostCtrl, 'e.g. 192.168.1.100',
                         type: TextInputType.number),
                   ),
                   const SizedBox(width: 8),
@@ -217,8 +220,11 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              _field(_portCtrl, 'Port  (default: 8765)',
+              const SizedBox(height: 10),
+              const Text('Port Number',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+              const SizedBox(height: 4),
+              _field(_portCtrl, 'default: 8765',
                   type: TextInputType.number),
               const SizedBox(height: 12),
               _connectBtn(isConnected),
