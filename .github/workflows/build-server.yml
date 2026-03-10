@@ -1,4 +1,4 @@
-name: Build Mousepad Server (Windows .exe)
+name: Build Mousepad Server
 
 on:
   push:
@@ -9,7 +9,17 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: MousepadServer-Windows
+            binary: server/dist/MousepadServer.exe
+          - os: macos-latest
+            artifact: MousepadServer-macOS
+            binary: server/dist/MousepadServer
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +32,13 @@ jobs:
       - name: Install dependencies
         run: pip install pyautogui pyinstaller
 
-      - name: Build exe
+      - name: Build binary
         working-directory: server
         run: pyinstaller --onefile --name MousepadServer server.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MousepadServer-Windows
-          path: server/dist/MousepadServer.exe
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.binary }}
           retention-days: 90
