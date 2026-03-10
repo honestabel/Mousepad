@@ -43,3 +43,27 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment / secrets
+.env
+.env.*
+*.env
+
+# Flutter build outputs
+flutter_export_environment.sh
+.flutter-plugins
+
+# macOS
+*.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/
+
+# Gradle
+/android/.gradle/
+/android/captures/
+/android/local.properties
