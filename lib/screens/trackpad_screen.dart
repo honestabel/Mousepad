@@ -78,8 +78,8 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
       };
 
   String get _statusLabel => switch (_connState) {
-        ConnState.connected => 'CONNECTED',
-        ConnState.connecting => 'CONNECTING',
+        ConnState.connected => 'READY',
+        ConnState.connecting => 'APPLYING',
         ConnState.error => 'ERROR',
         ConnState.disconnected => 'OFFLINE',
       };
@@ -101,7 +101,8 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
                   flex: 72,
                   child: TrackpadSurface(
                     sensitivity: _settings.sensitivity,
-                    onMove: (dx, dy) => _conn.send({'t': 'm', 'x': dx, 'y': dy}),
+                    onMove: (dx, dy) => _conn.send(
+                        'MOVE:${dx.toStringAsFixed(2)},${dy.toStringAsFixed(2)}'),
                     isConnected: _connState == ConnState.connected,
                   ),
                 ),
@@ -181,7 +182,7 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
             label: 'LEFT',
             color: AppColors.leftBtn,
             accentColor: AppColors.accent,
-            onTap: () => _conn.send({'t': 'l'}),
+            onTap: () => _conn.send('LEFT'),
           ),
         ),
         Container(width: 1, color: AppColors.divider),
@@ -190,7 +191,7 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
           child: ScrollStrip(
             scrollSpeed: _settings.scrollSpeed,
             naturalScroll: _settings.naturalScroll,
-            onScroll: (ticks) => _conn.send({'t': 's', 'd': ticks}),
+            onScroll: (ticks) => _conn.send('SCROLL:$ticks'),
           ),
         ),
         Container(width: 1, color: AppColors.divider),
@@ -200,7 +201,7 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
             label: 'RIGHT',
             color: AppColors.rightBtn,
             accentColor: const Color(0xFFFF6B9D),
-            onTap: () => _conn.send({'t': 'r'}),
+            onTap: () => _conn.send('RIGHT'),
           ),
         ),
       ],

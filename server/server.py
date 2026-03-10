@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """
-Mousepad Desktop Server
-WebSocket-based remote mouse controller.
+Mousepad UDP Server
+Listens for UDP datagrams from the Flutter app and drives the mouse.
+
+Protocol (plain text, UTF-8):
+  MOVE:dx,dy    — relative mouse move  (e.g. "MOVE:10.50,-3.25")
+  LEFT          — left click
+  RIGHT         — right click
+  SCROLL:ticks  — scroll wheel        (e.g. "SCROLL:-2" = scroll up 2 ticks)
 
 Setup:
-    pip install websockets pyautogui
+    pip install pyautogui
 
 Run:
     python server.py
@@ -12,83 +18,61 @@ Run:
 macOS: grant Accessibility access in System Settings → Privacy → Accessibility.
 """
 
-import asyncio
-import json
+import socket
 import sys
 
 import pyautogui
-import websockets
 
-# ── pyautogui safety settings ──────────────────────────────────────────────
-pyautogui.FAILSAFE = False   # disable move-to-corner kill switch
-pyautogui.PAUSE = 0          # remove default 0.1 s inter-call pause
+# ── pyautogui config ───────────────────────────────────────────────────────
+pyautogui.FAILSAFE = False   # don't abort on corner-move
+pyautogui.PAUSE = 0          # zero inter-call delay → lowest latency
 
-HOST = "0.0.0.0"
+HOST = '0.0.0.0'
 PORT = 8765
+BUFSIZE = 64          # max datagram size; longest message is ~28 bytes
 
 
-async def handler(websocket: websockets.ServerConnection) -> None:
-    addr = websocket.remote_address
-    print(f"[+] Connected:  {addr[0]}:{addr[1]}")
+def main() -> None:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((HOST, PORT))
+
+    print('╔══════════════════════════════════════╗')
+    print('║      Mousepad UDP Server  v2.0       ║')
+    print(f'║   Listening on udp://{HOST}:{PORT}     ║')
+    print('╚══════════════════════════════════════╝')
+    print('Waiting for tablet...\n')
+
+    while True:
+        try:
+            data, addr = sock.recvfrom(BUFSIZE)
+            msg = data.decode('utf-8').strip()
+
+            if msg.startswith('MOVE:'):
+                # "MOVE:dx,dy"
+                dx_s, dy_s = msg[5:].split(',')
+                pyautogui.moveRel(float(dx_s), float(dy_s), duration=0)
+
+            elif msg == 'LEFT':
+                pyautogui.click(button='left')
+
+            elif msg == 'RIGHT':
+                pyautogui.click(button='right')
+
+            elif msg.startswith('SCROLL:'):
+                # "SCROLL:ticks"  positive = down, negative = up
+                ticks = int(msg[7:])
+                if ticks != 0:
+                    pyautogui.scroll(-ticks)   # pyautogui positive = up
+
+        except (ValueError, UnicodeDecodeError) as e:
+            print(f'[!] Bad packet from {addr}: {e}')
+        except Exception as e:
+            print(f'[!] Error: {e}')
+
+
+if __name__ == '__main__':
     try:
-        async for raw in websocket:
-            try:
-                msg: dict = json.loads(raw)
-                t = msg.get("t")
-
-                if t == "m":
-                    # Relative mouse move — dx/dy in logical pixels
-                    pyautogui.moveRel(msg["x"], msg["y"], duration=0)
-
-                elif t == "l":
-                    # Left click
-                    pyautogui.click(button="left")
-
-                elif t == "r":
-                    # Right click
-                    pyautogui.click(button="right")
-
-                elif t == "s":
-                    # Scroll — d is signed tick count (+= down, -= up)
-                    ticks = int(msg.get("d", 0))
-                    if ticks != 0:
-                        pyautogui.scroll(-ticks)   # pyautogui: positive = up
-
-                elif t == "ld":
-                    pyautogui.mouseDown(button="left")
-
-                elif t == "lu":
-                    pyautogui.mouseUp(button="left")
-
-            except (KeyError, TypeError, json.JSONDecodeError) as e:
-                print(f"[!] Bad message: {e}  raw={raw!r}")
-
-    except websockets.exceptions.ConnectionClosedError:
-        pass
-    finally:
-        print(f"[-] Disconnected: {addr[0]}:{addr[1]}")
-
-
-async def main() -> None:
-    print("╔══════════════════════════════════════╗")
-    print("║       Mousepad Server  v1.0          ║")
-    print(f"║   Listening on ws://{HOST}:{PORT}     ║")
-    print("╚══════════════════════════════════════╝")
-    print("Waiting for tablet connection...\n")
-
-    async with websockets.serve(
-        handler,
-        HOST,
-        PORT,
-        ping_interval=20,
-        ping_timeout=10,
-    ):
-        await asyncio.Future()   # run forever
-
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
-        print("\nServer stopped.")
+        print('\nServer stopped.')
         sys.exit(0)

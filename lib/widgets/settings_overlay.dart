@@ -164,8 +164,8 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       ConnState.disconnected => AppColors.textSecondary,
     };
     final label = switch (widget.connState) {
-      ConnState.connected => 'CONNECTED',
-      ConnState.connecting => 'CONNECTING',
+      ConnState.connected => 'READY',
+      ConnState.connecting => 'APPLYING',
       ConnState.error => 'ERROR',
       ConnState.disconnected => 'OFFLINE',
     };
@@ -265,7 +265,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: AppColors.accent))
             : Text(
-                isConnected ? 'DISCONNECT' : 'CONNECT',
+                isConnected ? 'CLEAR' : 'APPLY',
                 style: const TextStyle(
                     fontSize: 11,
                     letterSpacing: 2.5,
@@ -336,7 +336,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                     fontWeight: FontWeight.w700)),
             SizedBox(height: 7),
             Text(
-              'pip install websockets pyautogui\npython server/server.py',
+              'pip install pyautogui\npython server/server.py',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10.5,
