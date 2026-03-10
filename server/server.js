@@ -29,8 +29,16 @@ server.on('message', (data, rinfo) => {
 
   if (!connected) {
     connected = true;
-    console.log(`\n  [✓] Device connected from ${rinfo.address} — Mousepad is active.`);
-    console.log('      Keep this window running. Close it only when you are done.\n');
+    console.log(`\n  *** CONNECTION SUCCESSFUL ***`);
+    console.log(`  Device connected from ${rinfo.address} — Mousepad is active and ready to use.`);
+    console.log();
+    console.log('  Keep this window running in the background while using Mousepad.');
+    console.log('  Close it only when you are completely done.');
+    console.log();
+    console.log('  REMINDER: The next time you want to use Mousepad, you will need to:');
+    console.log('    1. Reopen MousepadServer on your computer');
+    console.log('    2. Open the Mousepad app and tap FIND again to re-establish the connection');
+    console.log();
   }
 
   if (msg.startsWith('MOVE:')) {

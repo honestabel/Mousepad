@@ -136,8 +136,16 @@ def main() -> None:
 
                 if not connected:
                     connected = True
-                    print(f'\n  [✓] Device connected from {addr[0]} — Mousepad is active.')
-                    print('      Keep this window running. Close it only when you are done.\n')
+                    print(f'\n  *** CONNECTION SUCCESSFUL ***')
+                    print(f'  Device connected from {addr[0]} — Mousepad is active and ready to use.')
+                    print()
+                    print('  Keep this window running in the background while using Mousepad.')
+                    print('  Close it only when you are completely done.')
+                    print()
+                    print('  REMINDER: The next time you want to use Mousepad, you will need to:')
+                    print('    1. Reopen MousepadServer.exe on your computer')
+                    print('    2. Open the Mousepad app and tap FIND again to re-establish the connection')
+                    print()
 
                 if msg.startswith('MOVE:'):
                     dx_s, dy_s = msg[5:].split(',')

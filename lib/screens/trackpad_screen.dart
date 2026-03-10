@@ -31,7 +31,21 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
     _settings = AppSettings(); // defaults until prefs load
     _loadSettings();
     _connSub = _conn.stateStream.listen((s) {
-      if (mounted) setState(() => _connState = s);
+      if (mounted) {
+        if (s == ConnState.connected && _connState != ConnState.connected) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '✓  Connection Successful — Mousepad is ready to use!',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: AppColors.connected,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+        setState(() => _connState = s);
+      }
     });
   }
 
@@ -163,9 +177,29 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
           const Spacer(),
           GestureDetector(
             onTap: _showSettings,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(Icons.tune, color: AppColors.textSecondary, size: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.accentDim,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.settings, color: AppColors.accent, size: 15),
+                  SizedBox(width: 5),
+                  Text(
+                    'SETTINGS',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
