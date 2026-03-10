@@ -1,0 +1,13 @@
+{
+  "name": "mousepad-server",
+  "version": "1.0.0",
+  "description": "Mousepad WebSocket desktop server (Node.js alternative)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@jitsi/robotjs": "^0.6.14",
+    "ws": "^8.18.0"
+  }
+}
