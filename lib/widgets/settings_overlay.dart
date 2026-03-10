@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/app_settings.dart';
 import '../services/connection_service.dart';
@@ -431,24 +432,57 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.divider),
         ),
-        child: const Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('CONNECT YOUR COMPUTER',
+            const Text('CONNECT YOUR COMPUTER',
                 style: TextStyle(
                     color: AppColors.accent,
                     fontSize: 8.5,
                     letterSpacing: 2,
                     fontWeight: FontWeight.w700)),
-            SizedBox(height: 10),
-            _Step(number: '1', text: 'Download MousepadServer for your computer\ngithub.com/honestabel/Mousepad → Actions'),
-            SizedBox(height: 6),
-            _Step(number: '2', text: 'Windows: run MousepadServer.exe\nMac: open MousepadServer, then allow it in System Settings → Privacy → Accessibility'),
-            SizedBox(height: 6),
-            _Step(number: '3', text: 'Tap FIND above — done'),
+            const SizedBox(height: 10),
+            const _Step(number: '1', text: 'Download the Mousepad Server for your computer:'),
+            const SizedBox(height: 8),
+            _downloadBtn(
+              label: 'Windows  —  MousepadServer.exe',
+              url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer.exe',
+              icon: Icons.window,
+            ),
+            const SizedBox(height: 6),
+            _downloadBtn(
+              label: 'macOS  —  MousepadServer',
+              url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer-macOS',
+              icon: Icons.laptop_mac,
+            ),
+            const SizedBox(height: 10),
+            const _Step(number: '2', text: 'Run it on your computer\nMac only: allow it in System Settings → Privacy → Accessibility'),
+            const SizedBox(height: 6),
+            const _Step(number: '3', text: 'Tap FIND above — done'),
           ],
         ),
       );
+
+  Widget _downloadBtn({required String label, required String url, required IconData icon}) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        onPressed: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+        icon: Icon(icon, size: 14, color: AppColors.accent),
+        label: Text(label,
+            style: const TextStyle(
+                color: AppColors.accent,
+                fontSize: 11,
+                fontWeight: FontWeight.w600)),
+        style: TextButton.styleFrom(
+          backgroundColor: AppColors.accent.withValues(alpha: 0.08),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+      ),
+    );
+  }
 
   Widget _bottomBtns() => Row(
         children: [

@@ -7,16 +7,19 @@ on:
       - 'server/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
       matrix:
         include:
           - os: windows-latest
-            artifact: MousepadServer-Windows
+            artifact_name: MousepadServer.exe
             binary: server/dist/MousepadServer.exe
           - os: macos-latest
-            artifact: MousepadServer-macOS
+            artifact_name: MousepadServer-macOS
             binary: server/dist/MousepadServer
 
     runs-on: ${{ matrix.os }}
@@ -36,9 +39,14 @@ jobs:
         working-directory: server
         run: pyinstaller --onefile --name MousepadServer server.py
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Rename macOS binary
+        if: matrix.os == 'macos-latest'
+        run: mv server/dist/MousepadServer server/dist/MousepadServer-macOS
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.binary }}
-          retention-days: 90
+          tag_name: server-latest
+          name: Mousepad Server (latest)
+          prerelease: false
+          files: ${{ matrix.binary }}
