@@ -1,0 +1,34 @@
+name: Build Mousepad Server (Windows .exe)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyautogui pyinstaller
+
+      - name: Build exe
+        working-directory: server
+        run: pyinstaller --onefile --name MousepadServer server.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MousepadServer-Windows
+          path: server/dist/MousepadServer.exe
+          retention-days: 90

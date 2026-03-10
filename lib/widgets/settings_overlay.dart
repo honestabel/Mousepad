@@ -434,22 +434,18 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
         child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('DESKTOP SERVER SETUP',
+            Text('CONNECT YOUR COMPUTER',
                 style: TextStyle(
                     color: AppColors.accent,
                     fontSize: 8.5,
                     letterSpacing: 2,
                     fontWeight: FontWeight.w700)),
-            SizedBox(height: 7),
-            Text(
-              'pip install pyautogui\npython server/server.py',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 10.5,
-                fontFamily: 'monospace',
-                height: 1.6,
-              ),
-            ),
+            SizedBox(height: 10),
+            _Step(number: '1', text: 'Download  MousepadServer.exe\ngithub.com/honestabel/Mousepad'),
+            SizedBox(height: 6),
+            _Step(number: '2', text: 'Run MousepadServer.exe on your computer'),
+            SizedBox(height: 6),
+            _Step(number: '3', text: 'Tap FIND above — done'),
           ],
         ),
       );
@@ -486,4 +482,42 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
           ),
         ],
       );
+}
+
+class _Step extends StatelessWidget {
+  final String number;
+  final String text;
+
+  const _Step({required this.number, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 18,
+          height: 18,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.accent.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Text(number,
+              style: const TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(text,
+              style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                  height: 1.5)),
+        ),
+      ],
+    );
+  }
 }
