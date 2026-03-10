@@ -22,8 +22,16 @@ robot.setKeyboardDelay(0);
 const PORT = 8765;
 const server = dgram.createSocket('udp4');
 
-server.on('message', (data) => {
+let connected = false;
+
+server.on('message', (data, rinfo) => {
   const msg = data.toString('utf8').trim();
+
+  if (!connected) {
+    connected = true;
+    console.log(`\n  [✓] Device connected from ${rinfo.address} — Mousepad is active.`);
+    console.log('      Keep this window running. Close it only when you are done.\n');
+  }
 
   if (msg.startsWith('MOVE:')) {
     const [dx, dy] = msg.slice(5).split(',').map(Number);
@@ -49,6 +57,10 @@ server.on('error', (err) => {
 
 server.bind(PORT, () => {
   console.log(`Mousepad UDP server listening on port ${PORT}`);
+  console.log('  NOTE: Your iPad, tablet, or smartphone must be connected to the same');
+  console.log('        Wi-Fi network as this computer for Mousepad to work.\n');
+  console.log('  Once your device is connected and the app is working properly, keep this');
+  console.log('  terminal running. Close it only when you are completely done using Mousepad.\n');
   console.log('Waiting for tablet...');
   console.log('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n');
 });

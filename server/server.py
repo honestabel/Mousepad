@@ -116,19 +116,28 @@ def main() -> None:
         else:
             raise
         sys.exit(1)
+    print('  NOTE: Your iPad, tablet, or smartphone must be connected to the same')
+    print('        Wi-Fi network as this computer for Mousepad to work.\n')
     print('  Minimize this window — keep it running in the background while using Mousepad.')
-    print('  Close it when you are done.\n')
+    print('  Once your device is connected and the app is working properly, keep this')
+    print('  terminal running. Close it only when you are completely done using Mousepad.\n')
     print('Waiting for tablet...')
     print('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n')
     print('  If the app says "Desktop not found", enter these manually in the app:')
     print(f'    IP Address : {local_ip}')
     print(f'    Port       : {PORT}\n')
 
+    connected = False
     try:
         while True:
             try:
-                data, _ = sock.recvfrom(BUFSIZE)
+                data, addr = sock.recvfrom(BUFSIZE)
                 msg = data.decode('utf-8').strip()
+
+                if not connected:
+                    connected = True
+                    print(f'\n  [✓] Device connected from {addr[0]} — Mousepad is active.')
+                    print('      Keep this window running. Close it only when you are done.\n')
 
                 if msg.startswith('MOVE:'):
                     dx_s, dy_s = msg[5:].split(',')

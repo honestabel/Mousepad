@@ -448,7 +448,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                     letterSpacing: 2,
                     fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            const _Step(number: '1', text: 'Email yourself the download link and open it on your computer:'),
+            const _Step(number: '1', text: 'Ensure your iPad, tablet, or smartphone is connected to the same Wi-Fi network as your PC or Mac, then email yourself the download link and open it on your computer:'),
             const SizedBox(height: 8),
             _emailBtn(),
             const SizedBox(height: 10),
