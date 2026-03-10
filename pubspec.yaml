@@ -16,6 +16,19 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/mousepad.jpg"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/icon/mousepad.jpg"
+  remove_alpha_channel: true
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/icon/mousepad.jpg
