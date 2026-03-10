@@ -7,12 +7,6 @@ import 'screens/trackpad_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock to landscape for tablet use
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
-
   // Hide system UI for full-screen immersive feel
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
