@@ -351,40 +351,67 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   }
 
   Widget _connectBtn(bool isConnected) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed:
-            _connecting ? null : (isConnected ? widget.onDisconnect : _connect),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isConnected
-              ? AppColors.disconnected.withValues(alpha: 0.12)
-              : AppColors.accentDim,
-          foregroundColor:
-              isConnected ? AppColors.disconnected : AppColors.accent,
-          side: BorderSide(
-              color: isConnected
-                  ? AppColors.disconnected.withValues(alpha: 0.35)
-                  : AppColors.accent.withValues(alpha: 0.4)),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          elevation: 0,
+    return Row(
+      children: [
+        // APPLY button
+        Expanded(
+          flex: 3,
+          child: ElevatedButton(
+            onPressed: _connecting ? null : _connect,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentDim,
+              foregroundColor: AppColors.accent,
+              side: BorderSide(color: AppColors.accent.withValues(alpha: 0.4)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              elevation: 0,
+            ),
+            child: _connecting
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.accent))
+                : const Text(
+                    'APPLY',
+                    style: TextStyle(
+                        fontSize: 11,
+                        letterSpacing: 2.5,
+                        fontWeight: FontWeight.w700),
+                  ),
+          ),
         ),
-        child: _connecting
-            ? const SizedBox(
-                height: 16,
-                width: 16,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: AppColors.accent))
-            : Text(
-                isConnected ? 'CLEAR' : 'APPLY',
-                style: const TextStyle(
-                    fontSize: 11,
-                    letterSpacing: 2.5,
-                    fontWeight: FontWeight.w700),
-              ),
-      ),
+        const SizedBox(width: 8),
+        // CLEAR button
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            onPressed: isConnected ? widget.onDisconnect : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isConnected
+                  ? AppColors.disconnected.withValues(alpha: 0.12)
+                  : AppColors.surfaceHigh,
+              foregroundColor: isConnected
+                  ? AppColors.disconnected
+                  : AppColors.textSecondary,
+              side: BorderSide(
+                  color: isConnected
+                      ? AppColors.disconnected.withValues(alpha: 0.35)
+                      : AppColors.divider),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              elevation: 0,
+            ),
+            child: const Text(
+              'CLEAR',
+              style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 2.5,
+                  fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
