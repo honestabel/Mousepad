@@ -16,11 +16,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: MousepadServer.exe
             binary: server/dist/MousepadServer.exe
+            asset_name: MousepadServer.exe
           - os: macos-latest
-            artifact_name: MousepadServer-macOS
             binary: server/dist/MousepadServer
+            asset_name: MousepadServer-macOS
 
     runs-on: ${{ matrix.os }}
 
@@ -39,14 +39,47 @@ jobs:
         working-directory: server
         run: pyinstaller --onefile --name MousepadServer server.py
 
-      - name: Rename macOS binary
-        if: matrix.os == 'macos-latest'
-        run: mv server/dist/MousepadServer server/dist/MousepadServer-macOS
-
-      - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: server-latest
-          name: Mousepad Server (latest)
-          prerelease: false
-          files: ${{ matrix.binary }}
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.binary }}
+          retention-days: 90
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Windows binary
+        uses: actions/download-artifact@v4
+        with:
+          name: MousepadServer.exe
+          path: dist/
+
+      - name: Download macOS binary
+        uses: actions/download-artifact@v4
+        with:
+          name: MousepadServer-macOS
+          path: dist/
+
+      - name: Delete existing release
+        run: |
+          gh release delete server-latest --yes --repo ${{ github.repository }} || true
+          git -c http.extraHeader="Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            ls-remote --tags origin | grep server-latest && \
+            gh api repos/${{ github.repository }}/git/refs/tags/server-latest \
+              -X DELETE --silent || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release
+        run: |
+          gh release create server-latest \
+            --repo ${{ github.repository }} \
+            --title "Mousepad Server (latest)" \
+            --notes "Latest Mousepad Server build. Download the file for your OS and run it." \
+            dist/MousepadServer.exe \
+            dist/MousepadServer-macOS
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
