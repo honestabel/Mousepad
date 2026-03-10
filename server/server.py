@@ -116,6 +116,8 @@ def main() -> None:
         else:
             raise
         sys.exit(1)
+    print('  Minimize this window — keep it running in the background while using Mousepad.')
+    print('  Close it when you are done.\n')
     print('Waiting for tablet...')
     print('  -> On your tablet, open the Mousepad app, go to Settings, select "Find", done.\n')
     print('  If the app says "Desktop not found", enter these manually in the app:')
