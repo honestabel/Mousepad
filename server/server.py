@@ -105,7 +105,17 @@ def main() -> None:
     print()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((HOST, PORT))
+    try:
+        sock.bind((HOST, PORT))
+    except OSError as e:
+        if e.errno == 10048 or e.errno == 98:  # Windows / Linux address in use
+            print(f'\n[!] Port {PORT} is already in use.')
+            print('    Another instance of MousepadServer may be running.')
+            print('    Open Task Manager, find MousepadServer.exe, and end it.')
+            input('\nPress Enter to exit...')
+        else:
+            raise
+        sys.exit(1)
     print('Waiting for tablet...\n')
 
     try:
