@@ -37,7 +37,7 @@ server.on('message', (data, rinfo) => {
     console.log();
     console.log('  REMINDER: The next time you want to use Mousepad, you will need to:');
     console.log('    1. Reopen MousepadServer on your computer');
-    console.log('    2. Open the Mousepad app and tap FIND again to re-establish the connection');
+    console.log('    2. Open the Mousepad app on your tablet, smartphone, or device and tap FIND again to re-establish the connection');
     console.log();
   }
 

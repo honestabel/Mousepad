@@ -144,7 +144,7 @@ def main() -> None:
                     print()
                     print('  REMINDER: The next time you want to use Mousepad, you will need to:')
                     print('    1. Reopen MousepadServer.exe on your computer')
-                    print('    2. Open the Mousepad app and tap FIND again to re-establish the connection')
+                    print('    2. Open the Mousepad app on your tablet, smartphone, or device and tap FIND again to re-establish the connection')
                     print()
 
                 if msg.startswith('MOVE:'):
