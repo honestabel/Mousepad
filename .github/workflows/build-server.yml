@@ -63,6 +63,9 @@ jobs:
           name: MousepadServer-macOS
           path: dist/
 
+      - name: Rename macOS binary
+        run: mv dist/MousepadServer dist/MousepadServer-macOS
+
       - name: Delete existing release
         run: |
           gh release delete server-latest --yes --repo ${{ github.repository }} || true
