@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/app_settings.dart';
 import '../services/connection_service.dart';
@@ -441,24 +442,9 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                     letterSpacing: 2,
                     fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            const _Step(number: '1', text: 'On your Windows or Mac computer, open a browser and download the Mousepad Server:'),
+            const _Step(number: '1', text: 'Email yourself the download link and open it on your computer:'),
             const SizedBox(height: 8),
-            _downloadBtn(
-              label: 'Windows  —  MousepadServer.exe',
-              url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer.exe',
-              icon: Icons.window,
-            ),
-            const SizedBox(height: 6),
-            _downloadBtn(
-              label: 'macOS  —  MousepadServer',
-              url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer-macOS',
-              icon: Icons.laptop_mac,
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Tip: tap a link to copy the address, then paste it into your computer\'s browser.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 10, height: 1.4),
-            ),
+            _emailBtn(),
             const SizedBox(height: 10),
             const _Step(number: '2', text: 'Run the downloaded file on your computer\nMac only: allow it in System Settings → Privacy → Accessibility'),
             const SizedBox(height: 6),
@@ -467,38 +453,29 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
         ),
       );
 
-  Widget _downloadBtn({required String label, required String url, required IconData icon}) {
+  Widget _emailBtn() {
+    const subject = 'Mousepad Server Download';
+    const body =
+        'Download the Mousepad Server for your computer and run it:\n\n'
+        'Windows:\nhttps://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer.exe\n\n'
+        'macOS:\nhttps://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer-macOS\n\n'
+        'Once it is running, open the Mousepad app and tap FIND.';
+    final uri = Uri(
+      scheme: 'mailto',
+      query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+    );
     return SizedBox(
       width: double.infinity,
-      child: TextButton.icon(
-        onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: url));
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Link copied — paste it into your computer\'s browser'),
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
-        },
-        icon: Icon(icon, size: 14, color: AppColors.accent),
-        label: Row(
-          children: [
-            Expanded(
-              child: Text(label,
-                  style: const TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600)),
-            ),
-            const Icon(Icons.copy, size: 12, color: AppColors.textSecondary),
-          ],
-        ),
-        style: TextButton.styleFrom(
-          backgroundColor: AppColors.accent.withValues(alpha: 0.08),
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: ElevatedButton.icon(
+        onPressed: () => launchUrl(uri),
+        icon: const Icon(Icons.email_outlined, size: 15),
+        label: const Text('Email me the download link',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.accentDim,
+          foregroundColor: AppColors.accent,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
