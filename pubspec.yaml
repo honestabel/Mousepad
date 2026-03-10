@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.2
-  multicast_dns: ^0.3.2+1
 
 dev_dependencies:
   flutter_test:

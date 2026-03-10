@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Mousepad UDP Server
+Mousepad UDP Server v3.0
 Listens for UDP datagrams from the Flutter app and drives the mouse.
-Advertises itself via mDNS so the app can find it automatically.
+Auto-discovery: responds to MOUSEPAD_DISCOVER broadcasts on port 8766.
 
 Protocol (plain text, UTF-8):
   MOVE:dx,dy    -- relative mouse move  (e.g. "MOVE:10.50,-3.25")
@@ -11,16 +11,18 @@ Protocol (plain text, UTF-8):
   SCROLL:ticks  -- scroll wheel        (e.g. "SCROLL:-2" = scroll up 2 ticks)
 
 Setup:
-    pip install pyautogui zeroconf
+    pip install pyautogui
 
 Run:
     python server.py
 
 macOS: grant Accessibility access in System Settings -> Privacy -> Accessibility.
+Windows: run once as Administrator so firewall rules are added automatically.
 """
 
 import socket
 import sys
+import threading
 
 import pyautogui
 
@@ -29,6 +31,7 @@ pyautogui.PAUSE = 0
 
 HOST = '0.0.0.0'
 PORT = 8765
+DISCOVER_PORT = 8766
 BUFSIZE = 64
 
 
@@ -44,34 +47,61 @@ def get_local_ip() -> str:
         s.close()
 
 
-def start_mdns(local_ip: str, port: int):
-    """Register _mousepad._udp.local via Bonjour/mDNS. Optional — needs zeroconf."""
+def add_firewall_rules() -> None:
+    """Try to add Windows Firewall rules for ports 8765 and 8766 (UDP inbound)."""
     try:
-        from zeroconf import IPVersion, ServiceInfo, Zeroconf
-        info = ServiceInfo(
-            '_mousepad._udp.local.',
-            'Mousepad._mousepad._udp.local.',
-            addresses=[socket.inet_aton(local_ip)],
-            port=port,
-            properties={'version': '2'},
-        )
-        zc = Zeroconf(ip_version=IPVersion.V4Only)
-        zc.register_service(info)
-        print(f'  mDNS : advertising as Mousepad._mousepad._udp.local')
-        return zc, info
-    except ImportError:
-        print('  mDNS : zeroconf not installed — auto-discovery unavailable')
-        print('         run:  pip install zeroconf')
-        return None, None
+        import subprocess
+        import platform
+        if platform.system() != 'Windows':
+            return
+        for port, name in [(PORT, 'Mousepad-Control'), (DISCOVER_PORT, 'Mousepad-Discovery')]:
+            subprocess.run(
+                [
+                    'netsh', 'advfirewall', 'firewall', 'add', 'rule',
+                    f'name={name}',
+                    'dir=in',
+                    'action=allow',
+                    'protocol=UDP',
+                    f'localport={port}',
+                ],
+                capture_output=True,
+                check=False,
+            )
+        print('  FW   : firewall rules added (UDP 8765 + 8766 inbound)')
+    except Exception as e:
+        print(f'  FW   : could not add firewall rules ({e})')
+
+
+def discovery_thread(local_ip: str, control_port: int) -> None:
+    """Listen for MOUSEPAD_DISCOVER broadcasts and reply with our address."""
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(('', DISCOVER_PORT))
+        reply = f'MOUSEPAD_HERE:{control_port}'.encode('utf-8')
+        while True:
+            try:
+                data, addr = sock.recvfrom(64)
+                if data.strip() == b'MOUSEPAD_DISCOVER':
+                    sock.sendto(reply, addr)
+            except Exception:
+                pass
+    except Exception as e:
+        print(f'  DISC : discovery listener failed ({e})')
 
 
 def main() -> None:
     local_ip = get_local_ip()
 
-    print('[ Mousepad UDP Server v2.0 ]')
+    print('[ Mousepad UDP Server v3.0 ]')
     print(f'  UDP  : listening on {local_ip}:{PORT}')
+    print(f'  DISC : auto-discovery on port {DISCOVER_PORT}')
 
-    zc, info = start_mdns(local_ip, PORT)
+    add_firewall_rules()
+
+    t = threading.Thread(target=discovery_thread, args=(local_ip, PORT), daemon=True)
+    t.start()
+
     print()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -106,9 +136,6 @@ def main() -> None:
         pass
     finally:
         sock.close()
-        if zc and info:
-            zc.unregister_service(info)
-            zc.close()
         print('\nServer stopped.')
         sys.exit(0)
 

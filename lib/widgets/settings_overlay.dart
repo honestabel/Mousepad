@@ -1,8 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:multicast_dns/multicast_dns.dart';
 
 import '../models/app_settings.dart';
 import '../services/connection_service.dart';
@@ -63,7 +63,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
         naturalScroll: _naturalScroll,
       );
 
-  // ── mDNS discovery ─────────────────────────────────────────────────────────
+  // ── UDP broadcast discovery ──────────────────────────────────────────────────
 
   Future<void> _discover() async {
     setState(() {
@@ -71,45 +71,43 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       _errorText = null;
     });
 
-    final client = MDnsClient();
-    final completer = Completer<(String, int)?>();
-
+    RawDatagramSocket? sock;
     try {
-      await client.start();
+      sock = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+      sock.broadcastEnabled = true;
 
-      // Timeout after 6 seconds
-      Timer(const Duration(seconds: 6), () {
+      final completer = Completer<(String, int)?>();
+      Timer(const Duration(seconds: 5), () {
         if (!completer.isCompleted) completer.complete(null);
       });
 
-      client
-          .lookup<PtrResourceRecord>(
-            ResourceRecordQuery.serverPointer('_mousepad._udp.local'),
-          )
-          .listen((PtrResourceRecord ptr) async {
-        await for (final SrvResourceRecord srv in client
-            .lookup<SrvResourceRecord>(
-                ResourceRecordQuery.service(ptr.domainName))) {
-          await for (final IPAddressResourceRecord ip in client
-              .lookup<IPAddressResourceRecord>(
-                  ResourceRecordQuery.addressIPv4(srv.target))) {
-            if (!completer.isCompleted) {
-              completer.complete((ip.address.address, srv.port));
+      sock.listen((RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          final dg = sock?.receive();
+          if (dg != null) {
+            final msg = String.fromCharCodes(dg.data).trim();
+            if (msg.startsWith('MOUSEPAD_HERE:') && !completer.isCompleted) {
+              final port = int.tryParse(msg.split(':').last) ?? 8765;
+              completer.complete((dg.address.address, port));
             }
-            break;
           }
-          break;
         }
       });
 
-      final found = await completer.future;
-      client.stop();
+      sock.send(
+        Uint8List.fromList('MOUSEPAD_DISCOVER'.codeUnits),
+        InternetAddress('255.255.255.255'),
+        8766,
+      );
+
+      final result = await completer.future;
+      sock.close();
 
       if (!mounted) return;
 
-      if (found != null) {
-        _hostCtrl.text = found.$1;
-        _portCtrl.text = found.$2.toString();
+      if (result != null) {
+        _hostCtrl.text = result.$1;
+        _portCtrl.text = result.$2.toString();
         setState(() => _discovering = false);
       } else {
         setState(() {
@@ -118,7 +116,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
         });
       }
     } catch (e) {
-      client.stop();
+      sock?.close();
       if (mounted) {
         setState(() {
           _discovering = false;
@@ -444,7 +442,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                     fontWeight: FontWeight.w700)),
             SizedBox(height: 7),
             Text(
-              'pip install pyautogui zeroconf\npython server/server.py',
+              'pip install pyautogui\npython server/server.py',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10.5,
