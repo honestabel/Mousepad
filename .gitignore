@@ -49,6 +49,10 @@ app.*.map.json
 .env.*
 *.env
 
+# Android signing keys — never commit these
+*.jks
+*.keystore
+
 # Flutter build outputs
 flutter_export_environment.sh
 .flutter-plugins
