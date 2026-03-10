@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/app_settings.dart';
 import '../services/connection_service.dart';
@@ -442,7 +441,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                     letterSpacing: 2,
                     fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            const _Step(number: '1', text: 'Download the Mousepad Server for your computer:'),
+            const _Step(number: '1', text: 'On your Windows or Mac computer, open a browser and download the Mousepad Server:'),
             const SizedBox(height: 8),
             _downloadBtn(
               label: 'Windows  —  MousepadServer.exe',
@@ -455,8 +454,13 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
               url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer-macOS',
               icon: Icons.laptop_mac,
             ),
+            const SizedBox(height: 4),
+            const Text(
+              'Tip: tap a link to copy the address, then paste it into your computer\'s browser.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 10, height: 1.4),
+            ),
             const SizedBox(height: 10),
-            const _Step(number: '2', text: 'Run it on your computer\nMac only: allow it in System Settings → Privacy → Accessibility'),
+            const _Step(number: '2', text: 'Run the downloaded file on your computer\nMac only: allow it in System Settings → Privacy → Accessibility'),
             const SizedBox(height: 6),
             const _Step(number: '3', text: 'Tap FIND above — done'),
           ],
@@ -467,13 +471,30 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
     return SizedBox(
       width: double.infinity,
       child: TextButton.icon(
-        onPressed: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+        onPressed: () async {
+          await Clipboard.setData(ClipboardData(text: url));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Link copied — paste it into your computer\'s browser'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        },
         icon: Icon(icon, size: 14, color: AppColors.accent),
-        label: Text(label,
-            style: const TextStyle(
-                color: AppColors.accent,
-                fontSize: 11,
-                fontWeight: FontWeight.w600)),
+        label: Row(
+          children: [
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600)),
+            ),
+            const Icon(Icons.copy, size: 12, color: AppColors.textSecondary),
+          ],
+        ),
         style: TextButton.styleFrom(
           backgroundColor: AppColors.accent.withValues(alpha: 0.08),
           alignment: Alignment.centerLeft,
