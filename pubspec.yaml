@@ -1,5 +1,5 @@
 name: mousepad
-description: Remote mouse/trackpad for tablet — controls your desktop over WebSocket.
+description: Turn your Android phone or tablet into a wireless trackpad for your PC or Mac — ultra-low latency over local Wi-Fi using raw UDP.
 publish_to: 'none'
 version: 1.0.0+1
 
