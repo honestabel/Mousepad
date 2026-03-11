@@ -52,6 +52,7 @@ app.*.map.json
 # Android signing keys — never commit these
 *.jks
 *.keystore
+android/key.properties
 
 # Flutter build outputs
 flutter_export_environment.sh
