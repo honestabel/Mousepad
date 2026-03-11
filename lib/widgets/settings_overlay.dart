@@ -236,7 +236,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
               ],
               _divider(),
               _label('INPUT'),
-              _slider('Sensitivity', _sensitivity, 0.5, 4.0, 7,
+              _slider('Sensitivity', _sensitivity, 0.5, 8.0, 15,
                   (v) => setState(() => _sensitivity = v)),
               _slider('Scroll Speed', _scrollSpeed, 1.0, 8.0, 14,
                   (v) => setState(() => _scrollSpeed = v)),
