@@ -38,6 +38,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   bool _connecting = false;
   bool _discovering = false;
   String? _errorText;
+  bool _showServerBanner = false;
 
   @override
   void initState() {
@@ -113,7 +114,8 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       } else {
         setState(() {
           _discovering = false;
-          _errorText = 'Desktop not found — check the server window on your computer for the IP address and port, then enter them in the boxes above manually and tap the Apply button.';
+          _errorText = 'Desktop not found — is the server running on your computer?';
+          _showServerBanner = true;
         });
       }
     } catch (e) {
@@ -121,7 +123,8 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
       if (mounted) {
         setState(() {
           _discovering = false;
-          _errorText = 'Discovery failed — check the server window on your computer for the IP address and port, then enter them in the boxes above manually and tap the Apply button.';
+          _errorText = 'Discovery failed — is the server running on your computer?';
+          _showServerBanner = true;
         });
       }
     }
@@ -233,6 +236,10 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                 Text(_errorText!,
                     style: const TextStyle(
                         color: AppColors.disconnected, fontSize: 11)),
+              ],
+              if (_showServerBanner) ...[
+                const SizedBox(height: 10),
+                _serverBanner(),
               ],
               _divider(),
               _label('INPUT'),
@@ -511,6 +518,69 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
+      ),
+    );
+  }
+
+  Widget _serverBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3CD).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFFC107).withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.download_rounded, color: Color(0xFFFFC107), size: 14),
+              SizedBox(width: 6),
+              Text('Need the desktop server?',
+                  style: TextStyle(
+                      color: Color(0xFFFFC107),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _serverDownloadBtn(
+                  label: 'Windows',
+                  icon: Icons.window_rounded,
+                  url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer.exe',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _serverDownloadBtn(
+                  label: 'macOS',
+                  icon: Icons.laptop_mac_rounded,
+                  url: 'https://github.com/honestabel/Mousepad/releases/download/server-latest/MousepadServer-macOS',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _serverDownloadBtn({required String label, required IconData icon, required String url}) {
+    return ElevatedButton.icon(
+      onPressed: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      icon: Icon(icon, size: 13),
+      label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFFC107).withValues(alpha: 0.15),
+        foregroundColor: const Color(0xFFFFC107),
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
     );
   }
