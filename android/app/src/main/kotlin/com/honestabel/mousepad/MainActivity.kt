@@ -1,4 +1,4 @@
-package com.example.mousepad
+package com.honestabel.mousepad
 
 import io.flutter.embedding.android.FlutterActivity
 
