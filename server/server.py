@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mousepad UDP Server v3.0
+Mousepad UDP Server v3.1
 Listens for UDP datagrams from the Flutter app and drives the mouse.
 Auto-discovery: responds to MOUSEPAD_DISCOVER broadcasts on port 8766.
 
@@ -20,20 +20,113 @@ macOS: grant Accessibility access in System Settings -> Privacy -> Accessibility
 Windows: run once as Administrator so firewall rules are added automatically.
 """
 
+import platform
 import socket
 import sys
 import threading
-
-import pyautogui
-
-pyautogui.FAILSAFE = False
-pyautogui.PAUSE = 0
 
 HOST = '0.0.0.0'
 PORT = 8765
 DISCOVER_PORT = 8766
 BUFSIZE = 64
 
+# ---------------------------------------------------------------------------
+# Windows: use SendInput() directly so events go through the full Windows
+# input pipeline (generates WM_MOUSEMOVE etc.) rather than SetCursorPos()
+# which only moves the cursor visually and is ignored by many games / apps.
+# ---------------------------------------------------------------------------
+
+if platform.system() == 'Windows':
+    import ctypes
+    from ctypes import wintypes
+
+    class _MOUSEINPUT(ctypes.Structure):
+        _fields_ = [
+            ('dx',          wintypes.LONG),
+            ('dy',          wintypes.LONG),
+            ('mouseData',   wintypes.DWORD),
+            ('dwFlags',     wintypes.DWORD),
+            ('time',        wintypes.DWORD),
+            ('dwExtraInfo', ctypes.POINTER(ctypes.c_ulong)),
+        ]
+
+    class _INPUT_UNION(ctypes.Union):
+        _fields_ = [('mi', _MOUSEINPUT)]
+
+    class _INPUT(ctypes.Structure):
+        _anonymous_ = ('_u',)
+        _fields_ = [('type', wintypes.DWORD), ('_u', _INPUT_UNION)]
+
+    _INPUT_MOUSE        = 0
+    _MOUSEEVENTF_MOVE   = 0x0001   # relative move
+    _MOUSEEVENTF_LDOWN  = 0x0002
+    _MOUSEEVENTF_LUP    = 0x0004
+    _MOUSEEVENTF_RDOWN  = 0x0008
+    _MOUSEEVENTF_RUP    = 0x0010
+    _MOUSEEVENTF_WHEEL  = 0x0800
+    _WHEEL_DELTA        = 120
+
+    _send = ctypes.windll.user32.SendInput
+    _send.argtypes = [wintypes.UINT, ctypes.POINTER(_INPUT), ctypes.c_int]
+    _send.restype  = wintypes.UINT
+
+    def _make_mouse_input(flags, dx=0, dy=0, mouse_data=0):
+        inp = _INPUT(type=_INPUT_MOUSE)
+        inp.mi.dx = dx
+        inp.mi.dy = dy
+        inp.mi.mouseData = mouse_data
+        inp.mi.dwFlags = flags
+        inp.mi.time = 0
+        inp.mi.dwExtraInfo = None
+        return inp
+
+    def move_mouse(dx, dy):
+        inp = _make_mouse_input(_MOUSEEVENTF_MOVE, dx=int(dx), dy=int(dy))
+        _send(1, ctypes.byref(inp), ctypes.sizeof(_INPUT))
+
+    def left_click():
+        arr = (_INPUT * 2)(
+            _make_mouse_input(_MOUSEEVENTF_LDOWN),
+            _make_mouse_input(_MOUSEEVENTF_LUP),
+        )
+        _send(2, arr, ctypes.sizeof(_INPUT))
+
+    def right_click():
+        arr = (_INPUT * 2)(
+            _make_mouse_input(_MOUSEEVENTF_RDOWN),
+            _make_mouse_input(_MOUSEEVENTF_RUP),
+        )
+        _send(2, arr, ctypes.sizeof(_INPUT))
+
+    def scroll(ticks):
+        # ticks > 0 → scroll down, ticks < 0 → scroll up
+        inp = _make_mouse_input(_MOUSEEVENTF_WHEEL,
+                                mouse_data=ctypes.c_ulong(-ticks * _WHEEL_DELTA).value)
+        _send(1, ctypes.byref(inp), ctypes.sizeof(_INPUT))
+
+else:
+    # macOS / Linux fallback — pyautogui uses CGEventPost on macOS which is
+    # similarly injected at the OS level.
+    import pyautogui
+    pyautogui.FAILSAFE = False
+    pyautogui.PAUSE = 0
+
+    def move_mouse(dx, dy):
+        pyautogui.moveRel(float(dx), float(dy), duration=0)
+
+    def left_click():
+        pyautogui.click(button='left')
+
+    def right_click():
+        pyautogui.click(button='right')
+
+    def scroll(ticks):
+        pyautogui.scroll(-ticks)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def get_local_ip() -> str:
     """Return the machine's LAN IP (not 127.0.0.1)."""
@@ -51,7 +144,6 @@ def add_firewall_rules() -> None:
     """Try to add Windows Firewall rules for ports 8765 and 8766 (UDP inbound)."""
     try:
         import subprocess
-        import platform
         if platform.system() != 'Windows':
             return
         for port, name in [(PORT, 'Mousepad-Control'), (DISCOVER_PORT, 'Mousepad-Discovery')]:
@@ -90,10 +182,14 @@ def discovery_thread(local_ip: str, control_port: int) -> None:
         print(f'  DISC : discovery listener failed ({e})')
 
 
+# ---------------------------------------------------------------------------
+# Main loop
+# ---------------------------------------------------------------------------
+
 def main() -> None:
     local_ip = get_local_ip()
 
-    print('[ Mousepad UDP Server v3.0 ]')
+    print('[ Mousepad UDP Server v3.1 ]')
     print(f'  UDP  : listening on {local_ip}:{PORT}')
     print(f'  DISC : auto-discovery on port {DISCOVER_PORT}')
 
@@ -150,18 +246,18 @@ def main() -> None:
 
                 if msg.startswith('MOVE:'):
                     dx_s, dy_s = msg[5:].split(',')
-                    pyautogui.moveRel(float(dx_s), float(dy_s), duration=0)
+                    move_mouse(float(dx_s), float(dy_s))
 
                 elif msg == 'LEFT':
-                    pyautogui.click(button='left')
+                    left_click()
 
                 elif msg == 'RIGHT':
-                    pyautogui.click(button='right')
+                    right_click()
 
                 elif msg.startswith('SCROLL:'):
                     ticks = int(msg[7:])
                     if ticks != 0:
-                        pyautogui.scroll(-ticks)
+                        scroll(ticks)
 
             except (ValueError, UnicodeDecodeError) as e:
                 print(f'[!] Bad packet: {e}')
