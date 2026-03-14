@@ -110,6 +110,12 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
           Expanded(
             child: Column(
               children: [
+                // Button bar — 28 %
+                Expanded(
+                  flex: 28,
+                  child: _buttonBar(),
+                ),
+                Container(height: 1, color: AppColors.divider),
                 // Trackpad surface — 72 % of remaining height
                 Expanded(
                   flex: 72,
@@ -119,12 +125,6 @@ class _TrackpadScreenState extends State<TrackpadScreen> {
                         'MOVE:${dx.toStringAsFixed(2)},${dy.toStringAsFixed(2)}'),
                     isConnected: _connState == ConnState.connected,
                   ),
-                ),
-                Container(height: 1, color: AppColors.divider),
-                // Button bar — 28 %
-                Expanded(
-                  flex: 28,
-                  child: _buttonBar(),
                 ),
               ],
             ),
