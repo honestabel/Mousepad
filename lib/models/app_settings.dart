@@ -10,7 +10,7 @@ class AppSettings {
   AppSettings({
     this.host = '192.168.1.100',
     this.port = 8765,
-    this.sensitivity = 1.5,
+    this.sensitivity = 6.0,
     this.scrollSpeed = 3.0,
     this.naturalScroll = false,
   });
@@ -19,7 +19,7 @@ class AppSettings {
     return AppSettings(
       host: prefs.getString('mp_host') ?? '192.168.1.100',
       port: prefs.getInt('mp_port') ?? 8765,
-      sensitivity: prefs.getDouble('mp_sensitivity') ?? 1.5,
+      sensitivity: prefs.getDouble('mp_sensitivity') ?? 6.0,
       scrollSpeed: prefs.getDouble('mp_scrollSpeed') ?? 3.0,
       naturalScroll: prefs.getBool('mp_naturalScroll') ?? false,
     );
